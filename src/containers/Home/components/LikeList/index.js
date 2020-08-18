@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import "./style.css";
 import LikeItem from "./../LikeItem";
+import Loading from './../../../../components/Loading';
 
 const dataSource = [
   {
@@ -66,19 +67,77 @@ const dataSource = [
 ];
 
 class LikeList extends Component {
+  constructor(props) {
+    super(props);
+    this.myRef = React.createRef();
+    this.removeListener = false;
+    this.state = {
+      data: dataSource,
+      loadTimes: 1
+    }
+  }
   render() {
-    const data = dataSource;
+    const { data, loadTimes } = this.state;
     return (
-      <div className="likeList">
+      <div ref={this.myRef} className="likeList">
         <div className="likeList__header">猜你喜欢</div>
         <div className="likeList__list">
           {data.map((item, index) => {
-            return <LikeItem key={item.id} data={item} />;
+            return <LikeItem key={index} data={item} />;
           })}
         </div>
+        {
+          loadTimes < 3 ? (
+            <Loading />
+          ) : (
+              <a className="likeList__viewAll">查看更多</a>
+            )
+        }
       </div>
     );
   }
+
+  componentDidMount() {
+    document.addEventListener("scroll", this.handleScroll);
+  }
+
+  componentDidUpdate() {
+    if (this.state.loadTimes >= 3 && !this.removeListener) {
+      document.removeEventListener('scroll', this.handleScroll);
+      this.removeListener = true;
+    }
+  }
+
+  componentWillUnmount() {
+    if (!this.removeListener) {
+      document.removeEventListener('scroll', this.handleScroll);
+    }
+  }
+
+  // 处理屏幕滚动事件，实现加载更多的效果
+  handleScroll = () => {
+    // 页面滚动的距离
+    const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+    // 可视高度
+    const screenHeight = document.documentElement.clientHeight;
+    // likeList组件距顶部的距离
+    const likeListTop = this.myRef.current.offsetTop;
+    // likeList组件的高度
+    const likeListHeight = this.myRef.current.offsetHeight;
+    console.log(likeListHeight + likeListTop - screenHeight);
+    // 如果页面已滚动的距离大于等于likelist可滚动的距离
+    if (scrollTop >= likeListHeight + likeListTop - screenHeight) {
+      const newData = this.state.data.concat(dataSource);
+      const newLoadTimes = this.state.loadTimes + 1;
+      setTimeout(() => {
+        this.setState({
+          data: newData,
+          loadTimes: newLoadTimes
+        })
+      }, 1500);
+    }
+  }
+
 }
 
 export default LikeList;

@@ -141,7 +141,7 @@ class Category extends Component {
             // 下方的点
             dots: true,
             // 走马灯箭头
-            arrow: false,
+            arrows: false,
             // 主屏只显示一屏
             slidesToShow: 1,
             // 可以通过拖动变化
